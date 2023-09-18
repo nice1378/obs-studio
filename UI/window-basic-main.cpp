@@ -51,6 +51,7 @@
 #include "window-basic-source-select.hpp"
 #include "window-basic-main.hpp"
 #include "window-basic-stats.hpp"
+#include "window-basic-multiview.hpp"
 #include "window-basic-main-outputs.hpp"
 #include "window-basic-vcam-config.hpp"
 #include "window-log-reply.hpp"
@@ -109,6 +110,7 @@ using namespace std;
 #endif
 
 #include "ui-config.h"
+
 
 struct QCef;
 struct QCefCookieManager;
@@ -318,6 +320,7 @@ OBSBasic::OBSBasic(QWidget *parent)
 
 	startingDockLayout = saveState();
 
+	//statsDock
 	statsDock = new OBSDock();
 	statsDock->setObjectName(QStringLiteral("statsDock"));
 	statsDock->setFeatures(QDockWidget::DockWidgetClosable |
@@ -325,9 +328,21 @@ OBSBasic::OBSBasic(QWidget *parent)
 			       QDockWidget::DockWidgetFloatable);
 	statsDock->setWindowTitle(QTStr("Basic.Stats"));
 	addDockWidget(Qt::BottomDockWidgetArea, statsDock);
-	statsDock->setVisible(false);
+	statsDock->setVisible(true);
 	statsDock->setFloating(true);
 	statsDock->resize(700, 200);
+
+	//multiviewDock
+	multiviewDock = new OBSDock();
+	multiviewDock->setObjectName(QStringLiteral("multiviewDock"));
+	multiviewDock->setFeatures(QDockWidget::DockWidgetClosable |
+			       QDockWidget::DockWidgetMovable |
+			       QDockWidget::DockWidgetFloatable);
+	multiviewDock->setWindowTitle(QTStr("Basic.Multiview"));
+	addDockWidget(Qt::BottomDockWidgetArea, multiviewDock);
+	multiviewDock->setVisible(true);
+	multiviewDock->setFloating(true);
+	multiviewDock->resize(640, 400);
 
 	copyActionsDynamicProperties();
 
@@ -458,6 +473,7 @@ OBSBasic::OBSBasic(QWidget *parent)
 	SETUP_DOCK(ui->transitionsDock);
 	SETUP_DOCK(ui->controlsDock);
 	SETUP_DOCK(statsDock);
+	SETUP_DOCK(multiviewDock);
 #undef SETUP_DOCK
 
 	// Register shortcuts for Undo/Redo
@@ -499,10 +515,17 @@ OBSBasic::OBSBasic(QWidget *parent)
 
 	QPoint curSize(width(), height());
 
+	//statsDock
 	QPoint statsDockSize(statsDock->width(), statsDock->height());
 	QPoint statsDockPos = curSize / 2 - statsDockSize / 2;
 	QPoint newPos = curPos + statsDockPos;
 	statsDock->move(newPos);
+
+	//multiviewDock
+	QPoint multiviewDockSize(multiviewDock->width(), multiviewDock->height());
+	QPoint multiviewDockPos = curSize / 2 - multiviewDockSize / 2;
+	QPoint multiviewPos = curPos + multiviewDockPos;
+	multiviewDock->move(multiviewPos);
 
 	ui->previewDisabledWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->enablePreviewButton, SIGNAL(clicked()), this,
@@ -2108,6 +2131,10 @@ void OBSBasic::OBSInit()
 	/* setup stats dock */
 	OBSBasicStats *statsDlg = new OBSBasicStats(statsDock, false);
 	statsDock->setWidget(statsDlg);
+
+	/* setup stats multiview */
+	OBSBasicMultiview *multiviewDlg = new OBSBasicMultiview (multiviewDock, false);
+	multiviewDock->setWidget(multiviewDlg);
 
 	/* ----------------------------- */
 	/* add custom browser docks      */
@@ -4804,6 +4831,8 @@ void OBSBasic::CloseDialogs()
 
 	if (!stats.isNull())
 		stats->close(); //call close to save Stats geometry
+	if (!multiview.isNull())
+		multiview->close(); //call close to save Stats geometry
 	if (!remux.isNull())
 		remux->close();
 }
@@ -9191,7 +9220,8 @@ void OBSBasic::UpdateTitleBar()
 	name << " - " << Str("TitleBar.Profile") << ": " << profile;
 	name << " - " << Str("TitleBar.Scenes") << ": " << sceneCollection;
 
-	setWindowTitle(QT_UTF8(name.str().c_str()));
+	//setWindowTitle(QT_UTF8(name.str().c_str()));
+	setWindowTitle("Baru");
 }
 
 int OBSBasic::GetProfilePath(char *path, size_t size, const char *file) const
@@ -9216,6 +9246,13 @@ int OBSBasic::GetProfilePath(char *path, size_t size, const char *file) const
 		return snprintf(path, size, "%s/%s", profiles_path, profile);
 
 	return snprintf(path, size, "%s/%s/%s", profiles_path, profile, file);
+}
+
+void OBSBasic::showEvent(QShowEvent* event)
+{
+	QWidget::showEvent(event);
+
+	AddDockWidget(statsDock, Qt::BottomDockWidgetArea);
 }
 
 void OBSBasic::on_resetDocks_triggered(bool force)
@@ -9296,6 +9333,8 @@ void OBSBasic::on_resetDocks_triggered(bool force)
 	ui->controlsDock->setVisible(true);
 	statsDock->setVisible(false);
 	statsDock->setFloating(true);
+	multiviewDock->setVisible(false);
+	multiviewDock->setFloating(true);
 
 	resizeDocks(docks, {cy, cy, cy, cy, cy}, Qt::Vertical);
 	resizeDocks(docks, sizes, Qt::Horizontal);
@@ -10076,6 +10115,21 @@ void OBSBasic::on_stats_triggered()
 	statsDlg->show();
 	stats = statsDlg;
 }
+
+
+void OBSBasic::on_multiview_triggered()
+{
+	if (!multiview.isNull()) {
+		multiview->show();
+		multiview->raise();
+		return;
+	}
+
+	OBSBasicMultiview* multiviewDig = new OBSBasicMultiview(nullptr);
+	multiviewDig->show();
+	multiview = multiviewDig;
+}
+
 
 void OBSBasic::on_actionShowAbout_triggered()
 {

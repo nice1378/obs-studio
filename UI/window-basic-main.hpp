@@ -259,6 +259,7 @@ private:
 	QPointer<OBSBasicAdvAudio> advAudioWindow;
 	QPointer<OBSBasicFilters> filters;
 	QPointer<QDockWidget> statsDock;
+	QPointer<QDockWidget> multiviewDock;
 	QPointer<OBSAbout> about;
 	QPointer<OBSMissingFiles> missDialog;
 	QPointer<OBSLogViewer> logView;
@@ -301,6 +302,7 @@ private:
 	std::vector<OBSProjector *> projectors;
 
 	QPointer<QWidget> stats;
+	QPointer<QWidget> multiview;
 	QPointer<QWidget> remux;
 	QPointer<QWidget> extraBrowsers;
 	QPointer<QWidget> importer;
@@ -1147,6 +1149,7 @@ private slots:
 
 	void on_autoConfigure_triggered();
 	void on_stats_triggered();
+	void on_multiview_triggered();
 
 	void on_resetUI_triggered();
 	void on_resetDocks_triggered(bool force = false);
@@ -1227,6 +1230,10 @@ public:
 				   const char *file) const override;
 
 	static void InitBrowserPanelSafeBlock();
+
+protected:
+	virtual void showEvent(QShowEvent *event) override;
+
 };
 
 class SceneRenameDelegate : public QStyledItemDelegate {
