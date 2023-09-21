@@ -3553,8 +3553,10 @@ void OBSBasicSettings::SaveGeneralSettings()
 		multiviewChanged = true;
 	}
 
-	if (multiviewChanged)
+	if (multiviewChanged) {
 		OBSProjector::UpdateMultiviewProjectors();
+		OBSProjectorMultiview::UpdateMultiviewProjectors();
+	}
 }
 
 void OBSBasicSettings::SaveVideoSettings()

@@ -34,6 +34,7 @@
 #include <QSizePolicy>
 #include <QScrollBar>
 #include <QTextStream>
+#include <QSpacerItem>
 
 #include <util/dstr.h>
 #include <util/util.hpp>
@@ -3127,6 +3128,7 @@ void OBSBasic::AddScene(OBSSource source)
 		     obs_source_get_name(source));
 
 		OBSProjector::UpdateMultiviewProjectors();
+		OBSProjectorMultiview::UpdateMultiviewProjectors();
 	}
 
 	if (api)
@@ -3163,6 +3165,7 @@ void OBSBasic::RemoveScene(OBSSource source)
 		     obs_source_get_name(source));
 
 		OBSProjector::UpdateMultiviewProjectors();
+		OBSProjectorMultiview::UpdateMultiviewProjectors();
 	}
 
 	if (api)
@@ -3239,8 +3242,10 @@ void OBSBasic::RenameSources(OBSSource source, QString newName,
 	SaveProject();
 
 	obs_scene_t *scene = obs_scene_from_source(source);
-	if (scene)
+	if (scene) {
 		OBSProjector::UpdateMultiviewProjectors();
+		OBSProjectorMultiview::UpdateMultiviewProjectors();
+	}
 
 	UpdateContextBar();
 	UpdatePreviewProgramIndicators();
@@ -4709,6 +4714,7 @@ int OBSBasic::ResetVideo()
 		obs_set_video_levels(sdr_white_level, hdr_nominal_peak_level);
 		OBSBasicStats::InitializeValues();
 		OBSProjector::UpdateMultiviewProjectors();
+		OBSProjectorMultiview::UpdateMultiviewProjectors();
 	}
 
 	return ret;
@@ -5473,6 +5479,7 @@ void OBSBasic::on_scenes_customContextMenuRequested(const QPoint &pos)
 				obs_data_get_bool(data, "show_in_multiview");
 			obs_data_set_bool(data, "show_in_multiview", !show);
 			OBSProjector::UpdateMultiviewProjectors();
+			OBSProjectorMultiview::UpdateMultiviewProjectors();
 		};
 
 		connect(multiviewAction, &QAction::triggered,
@@ -5583,6 +5590,7 @@ void OBSBasic::ChangeSceneIndex(bool relative, int offset, int invalidIdx)
 	ui->scenes->blockSignals(false);
 
 	OBSProjector::UpdateMultiviewProjectors();
+	OBSProjectorMultiview::UpdateMultiviewProjectors();
 }
 
 void OBSBasic::on_actionSceneUp_triggered()
@@ -9069,6 +9077,19 @@ OBSProjector *OBSBasic::OpenProjector(obs_source_t *source, int monitor,
 	return projector;
 }
 
+OBSProjectorMultiview *OBSBasic::OpenProjectorMultiview(obs_source_t *source)
+{
+	QPoint newPos =ui->widgetMultiview->parentWidget()->frameGeometry().topLeft();
+	newPos += ui->widgetMultiview->geometry().topLeft();
+	newPos += QPoint(0, QApplication::style()->pixelMetric(QStyle::PM_TitleBarHeight));	//titlebar height
+	QSize newSize = ui->widgetMultiview->geometry().size();
+
+	QRect rect(newPos.x(), newPos.y(), newSize.width(), newSize.height());
+	OBSProjectorMultiview *projector =
+		new OBSProjectorMultiview(nullptr, source, rect);
+	return projector;
+}
+
 void OBSBasic::OpenStudioProgramProjector()
 {
 	int monitor = sender()->property("monitor").toInt();
@@ -9252,7 +9273,8 @@ void OBSBasic::showEvent(QShowEvent* event)
 {
 	QWidget::showEvent(event);
 
-	AddDockWidget(statsDock, Qt::BottomDockWidgetArea);
+	//AddDockWidget(statsDock, Qt::BottomDockWidgetArea);
+	OpenProjectorMultiview(nullptr);
 }
 
 void OBSBasic::on_resetDocks_triggered(bool force)
@@ -9389,7 +9411,16 @@ void OBSBasic::on_resetUI_triggered()
 
 void OBSBasic::on_multiviewProjectorWindowed_triggered()
 {
-	OpenProjector(nullptr, -1, ProjectorType::Multiview);
+	OpenProjectorMultiview(nullptr);
+
+	//OBSProjector* projecter = OpenProjector(nullptr, -1, ProjectorType::Multiview);
+	////ui->frameMultiview->screen()
+	////QPoint globalPos = QWidget::mapToGlobal(ui->frameMultiview->rect().topLeft());
+	//QPoint newPos = ui->frameMultiview->parentWidget()->frameGeometry().topLeft();
+	//newPos += ui->frameMultiview->geometry().topLeft();
+	////newPos += QPoint(ui->frameMultiview->frameGeometry().top(), 0);
+	//projecter->move(newPos);
+	//projecter->resize(ui->frameMultiview->geometry().size());
 }
 
 void OBSBasic::on_toggleListboxToolbars_toggled(bool visible)
@@ -10587,6 +10618,7 @@ void OBSBasic::CheckDiskSpaceRemaining()
 void OBSBasic::ScenesReordered()
 {
 	OBSProjector::UpdateMultiviewProjectors();
+	OBSProjectorMultiview::UpdateMultiviewProjectors();
 }
 
 void OBSBasic::ResetStatsHotkey()

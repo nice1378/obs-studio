@@ -35,6 +35,7 @@
 #include "window-basic-filters.hpp"
 #include "window-missing-files.hpp"
 #include "window-projector.hpp"
+#include "window-projector-multiview.hpp"
 #include "window-basic-about.hpp"
 #include "auth-base.hpp"
 #include "log-viewer.hpp"
@@ -419,6 +420,7 @@ private:
 
 	OBSProjector *OpenProjector(obs_source_t *source, int monitor,
 				    ProjectorType type);
+	OBSProjectorMultiview *OpenProjectorMultiview(obs_source_t *source);
 
 	void GetAudioSourceFilters();
 	void GetAudioSourceProperties();
