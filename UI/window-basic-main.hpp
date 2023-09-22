@@ -301,6 +301,7 @@ private:
 
 	std::vector<SavedProjectorInfo *> savedProjectorsArray;
 	std::vector<OBSProjector *> projectors;
+	OBSProjectorMultiview *projectorMultiview = nullptr;
 
 	QPointer<QWidget> stats;
 	QPointer<QWidget> multiview;
@@ -421,6 +422,7 @@ private:
 	OBSProjector *OpenProjector(obs_source_t *source, int monitor,
 				    ProjectorType type);
 	OBSProjectorMultiview *OpenProjectorMultiview(obs_source_t *source);
+	QRect GetProjectorMultiviewGeometry();
 
 	void GetAudioSourceFilters();
 	void GetAudioSourceProperties();
@@ -1012,6 +1014,8 @@ public:
 
 	QColor GetSelectionColor() const;
 
+	void ClearProjectorMultiview(bool destroy = false);
+
 protected:
 	virtual void closeEvent(QCloseEvent *event) override;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
@@ -1234,6 +1238,8 @@ public:
 	static void InitBrowserPanelSafeBlock();
 
 protected:
+	virtual void moveEvent(QMoveEvent *event) override;
+	virtual void resizeEvent(QResizeEvent *event) override;
 	virtual void showEvent(QShowEvent *event) override;
 
 };

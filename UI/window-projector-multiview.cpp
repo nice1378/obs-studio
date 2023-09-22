@@ -15,13 +15,12 @@ static OBSProjectorMultiview *multiviewProjector;
 static bool updatingMultiview = false, mouseSwitching, transitionOnDoubleClick;
 
 OBSProjectorMultiview::OBSProjectorMultiview(QWidget *widget,
-					     obs_source_t *source_,
-					     QRect rect)
-	//: OBSQTDisplay(widget, Qt::Window | Qt::FramelessWindowHint),
-	: OBSQTDisplay(widget, Qt::Dialog 
+					     obs_source_t *source_, QRect rect)
+	: OBSQTDisplay(widget, Qt::Window),
+	  /*: OBSQTDisplay(widget, Qt::Window
 				| Qt::CustomizeWindowHint
 				| Qt::WindowTitleHint
-	),
+	),*/
 	  weakSource(OBSGetWeakRef(source_))
 {
 	OBSSource source = GetSource();
@@ -30,7 +29,8 @@ OBSProjectorMultiview::OBSProjectorMultiview(QWidget *widget,
 					"destroy", OBSSourceDestroyed, this);
 	}
 
-	setWindowFlags(Qt::WindowStaysOnTopHint);
+	//Qt::FramelessWindowHint 따로 쓰면 적용이 안됨
+	setWindowFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
 
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__DragonFly__)
 	// Prevents resizing of projector windows
@@ -104,12 +104,20 @@ void OBSProjectorMultiview::OBSSourceDestroyed(void *data, calldata_t *)
 
 void OBSProjectorMultiview::moveEvent(QMoveEvent* event)
 {
-
+	QWidget::moveEvent(event);
 }
 
 void OBSProjectorMultiview::closeEvent(QCloseEvent *event)
 {
 	event->accept();
+
+	//
+	OBSBasic *main = reinterpret_cast<OBSBasic *>(App()->GetMainWindow());
+	if (nullptr != main)
+	{
+		main->ClearProjectorMultiview();
+	}
+
 
 	QWidget::closeEvent(event);
 }

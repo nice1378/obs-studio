@@ -4874,6 +4874,13 @@ void OBSBasic::ClearProjectors()
 	}
 
 	projectors.clear();
+
+	if (nullptr != projectorMultiview)
+	{
+		delete projectorMultiview;
+		projectorMultiview = nullptr;
+	}
+
 }
 
 void OBSBasic::ClearSceneData()
@@ -9079,15 +9086,32 @@ OBSProjector *OBSBasic::OpenProjector(obs_source_t *source, int monitor,
 
 OBSProjectorMultiview *OBSBasic::OpenProjectorMultiview(obs_source_t *source)
 {
-	QPoint newPos =ui->widgetMultiview->parentWidget()->frameGeometry().topLeft();
-	newPos += ui->widgetMultiview->geometry().topLeft();
-	newPos += QPoint(0, QApplication::style()->pixelMetric(QStyle::PM_TitleBarHeight));	//titlebar height
-	QSize newSize = ui->widgetMultiview->geometry().size();
-
-	QRect rect(newPos.x(), newPos.y(), newSize.width(), newSize.height());
+	QRect rect = GetProjectorMultiviewGeometry();
 	OBSProjectorMultiview *projector =
 		new OBSProjectorMultiview(nullptr, source, rect);
 	return projector;
+}
+
+void OBSBasic::ClearProjectorMultiview(bool destroy)
+{
+	if (nullptr != projectorMultiview) {
+		if (destroy)
+			delete projectorMultiview;
+		projectorMultiview = nullptr;
+	}
+	
+}
+
+QRect OBSBasic::GetProjectorMultiviewGeometry()
+{
+	QPoint newPos = this->geometry().topLeft();
+	newPos += ui->widgetMultiview->parentWidget()->frameGeometry().topLeft();
+	newPos += ui->widgetMultiview->geometry().topLeft();
+	//newPos += QPoint(0, QApplication::style()->pixelMetric(QStyle::PM_TitleBarHeight)); //titlebar height
+	QSize newSize = ui->widgetMultiview->geometry().size();
+
+	QRect rect(newPos.x(), newPos.y(), newSize.width(), newSize.height());
+	return rect;
 }
 
 void OBSBasic::OpenStudioProgramProjector()
@@ -9269,12 +9293,40 @@ int OBSBasic::GetProfilePath(char *path, size_t size, const char *file) const
 	return snprintf(path, size, "%s/%s/%s", profiles_path, profile, file);
 }
 
+void OBSBasic::moveEvent(QMoveEvent *event)
+{
+	QWidget::moveEvent(event);
+
+	if (isVisible()) {
+		if (nullptr != projectorMultiview) {
+			QRect rect = GetProjectorMultiviewGeometry();
+			projectorMultiview->move(rect.x(), rect.y());
+		}
+	}
+}
+
+void OBSBasic::resizeEvent(QResizeEvent *event)
+{
+	QWidget::resizeEvent(event);
+
+	if(isVisible()) {
+		if (nullptr == projectorMultiview) {
+			projectorMultiview = OpenProjectorMultiview(nullptr);
+		} else {
+			QRect rect = GetProjectorMultiviewGeometry();
+			projectorMultiview->move(rect.x(), rect.y());
+			projectorMultiview->resize(rect.width(), rect.height());
+		}
+		
+	}
+}
+
 void OBSBasic::showEvent(QShowEvent* event)
 {
 	QWidget::showEvent(event);
 
 	//AddDockWidget(statsDock, Qt::BottomDockWidgetArea);
-	OpenProjectorMultiview(nullptr);
+	//OpenProjectorMultiview(nullptr);
 }
 
 void OBSBasic::on_resetDocks_triggered(bool force)
