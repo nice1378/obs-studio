@@ -422,6 +422,7 @@ private:
 	OBSProjector *OpenProjector(obs_source_t *source, int monitor,
 				    ProjectorType type);
 	OBSProjectorMultiview *OpenProjectorMultiview(obs_source_t *source);
+	void UpdateProjectorMultiview();
 	QRect GetProjectorMultiviewGeometry();
 
 	void GetAudioSourceFilters();

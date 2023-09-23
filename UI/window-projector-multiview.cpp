@@ -10,10 +10,42 @@
 #include "platform.hpp"
 #include "multiview.hpp"
 
+//------------------ static ---------------------
 static OBSProjectorMultiview *multiviewProjector;
 
 static bool updatingMultiview = false, mouseSwitching, transitionOnDoubleClick;
 
+void OBSProjectorMultiview::OBSRenderMultiview(void *data, uint32_t cx, uint32_t cy)
+{
+	OBSProjectorMultiview *window = (OBSProjectorMultiview *)data;
+	if (updatingMultiview || !window->ready)
+		return;
+
+	window->multiview->Render(cx, cy);
+}
+
+void OBSProjectorMultiview::OBSSourceDestroyed(void *data, calldata_t *)
+{
+	OBSProjectorMultiview *window =
+		reinterpret_cast<OBSProjectorMultiview *>(data);
+	QMetaObject::invokeMethod(window, "EscapeTriggered");
+}
+
+void OBSProjectorMultiview::UpdateMultiviewProjectors()
+{
+	obs_enter_graphics();
+	updatingMultiview = true;
+	obs_leave_graphics();
+
+	if (nullptr != multiviewProjector)
+		multiviewProjector->UpdateMultiview();
+
+	obs_enter_graphics();
+	updatingMultiview = false;
+	obs_leave_graphics();
+}
+
+//------------------ static ---------------------
 OBSProjectorMultiview::OBSProjectorMultiview(QWidget *widget,
 					     obs_source_t *source_, QRect rect)
 	: OBSQTDisplay(widget, Qt::Window),
@@ -40,7 +72,7 @@ OBSProjectorMultiview::OBSProjectorMultiview(QWidget *widget,
 	move(rect.x(), rect.y());
 	resize(rect.width(), rect.height());
 
-	setWindowTitle(QTStr("MultiviewWindowed"));
+	setWindowTitle(QTStr("MultiviewWindowed") + "_dock");
 
 	setAttribute(Qt::WA_DeleteOnClose, true);
 
@@ -79,27 +111,15 @@ OBSProjectorMultiview::~OBSProjectorMultiview()
 	if (source)
 		obs_source_dec_showing(source);
 
-	delete multiview;
+	if (nullptr != multiview)
+	{
+		delete multiview;
+		multiview = nullptr;
+	}
+		
 	multiviewProjector = nullptr;
 
 	App()->DecrementSleepInhibition();
-}
-
-
-void OBSProjectorMultiview::OBSRenderMultiview(void *data, uint32_t cx, uint32_t cy)
-{
-	OBSProjectorMultiview *window = (OBSProjectorMultiview *)data;
-
-	if (updatingMultiview || !window->ready)
-		return;
-
-	window->multiview->Render(cx, cy);
-}
-
-void OBSProjectorMultiview::OBSSourceDestroyed(void *data, calldata_t *)
-{
-	OBSProjectorMultiview *window = reinterpret_cast<OBSProjectorMultiview *>(data);
-	QMetaObject::invokeMethod(window, "EscapeTriggered");
 }
 
 void OBSProjectorMultiview::moveEvent(QMoveEvent* event)
@@ -204,43 +224,14 @@ void OBSProjectorMultiview::mousePressEvent(QMouseEvent *event)
 void OBSProjectorMultiview::UpdateMultiview()
 {
 	MultiviewLayout multiviewLayout = static_cast<MultiviewLayout>(
-		config_get_int(GetGlobalConfig(), "BasicWindow",
-			       "MultiviewLayout"));
+		config_get_int(GetGlobalConfig(), "BasicWindow", "MultiviewLayout"));
 
-	bool drawLabel = config_get_bool(GetGlobalConfig(), "BasicWindow",
-					 "MultiviewDrawNames");
-
-	bool drawSafeArea = config_get_bool(GetGlobalConfig(), "BasicWindow",
-					    "MultiviewDrawAreas");
-
-	mouseSwitching = config_get_bool(GetGlobalConfig(), "BasicWindow",
-					 "MultiviewMouseSwitch");
-
-	transitionOnDoubleClick = config_get_bool(
-		GetGlobalConfig(), "BasicWindow", "TransitionOnDoubleClick");
-
+	bool drawLabel = config_get_bool(GetGlobalConfig(), "BasicWindow", "MultiviewDrawNames");
+	bool drawSafeArea = config_get_bool(GetGlobalConfig(), "BasicWindow", "MultiviewDrawAreas");
+	mouseSwitching = config_get_bool(GetGlobalConfig(), "BasicWindow", "MultiviewMouseSwitch");
+	transitionOnDoubleClick = config_get_bool(GetGlobalConfig(), "BasicWindow", "TransitionOnDoubleClick");
 	multiview->Update(multiviewLayout, drawLabel, drawSafeArea);
 }
-
-OBSSource OBSProjectorMultiview::GetSource()
-{
-	return OBSGetStrongRef(weakSource);
-}
-
-void OBSProjectorMultiview::UpdateMultiviewProjectors()
-{
-	obs_enter_graphics();
-	updatingMultiview = true;
-	obs_leave_graphics();
-
-	if (nullptr != multiviewProjector)
-		multiviewProjector->UpdateMultiview();
-
-	obs_enter_graphics();
-	updatingMultiview = false;
-	obs_leave_graphics();
-}
-
 
 void OBSProjectorMultiview::OpenFullScreenProjector()
 {
