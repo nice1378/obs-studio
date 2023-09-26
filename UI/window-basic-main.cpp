@@ -9274,7 +9274,7 @@ void OBSBasic::UpdateTitleBar()
 	name << " - " << Str("TitleBar.Scenes") << ": " << sceneCollection;
 
 	//setWindowTitle(QT_UTF8(name.str().c_str()));
-	setWindowTitle("Baru");
+	setWindowTitle("Brexel Studio");
 }
 
 int OBSBasic::GetProfilePath(char *path, size_t size, const char *file) const
