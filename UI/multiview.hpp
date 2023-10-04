@@ -22,6 +22,8 @@ public:
 	~Multiview();
 	void Update(MultiviewLayout multiviewLayout, bool drawLabel,
 		    bool drawSafeArea);
+	void Update(MultiviewLayout multiviewLayout, bool drawLabel,
+		    bool drawSafeArea, uint32_t w, uint32_t h);
 	void Render(uint32_t cx, uint32_t cy);
 	OBSSource GetSourceByPosition(int x, int y);
 

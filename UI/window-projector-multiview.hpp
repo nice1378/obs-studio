@@ -25,7 +25,10 @@ private:
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseDoubleClickEvent(QMouseEvent *event) override;
 
-	void UpdateMultiview();
+	void UpdateMultiview(uint32_t w, uint32_t h);
+
+public:
+	QRect InitRect;
 
 private slots:
 	void OpenFullScreenProjector();

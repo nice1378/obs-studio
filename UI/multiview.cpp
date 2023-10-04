@@ -67,6 +67,18 @@ static OBSSource CreateLabel(const char *name, size_t h)
 void Multiview::Update(MultiviewLayout multiviewLayout, bool drawLabel,
 		       bool drawSafeArea)
 {
+	struct obs_video_info ovi;
+	obs_get_video_info(&ovi);
+
+	uint32_t w = ovi.base_width;
+	uint32_t h = ovi.base_height;
+
+	Update(multiviewLayout, drawLabel, drawSafeArea, w, h);
+}
+
+void Multiview::Update(MultiviewLayout multiviewLayout, bool drawLabel,
+		       bool drawSafeArea, uint32_t w, uint32_t h)
+{
 	this->multiviewLayout = multiviewLayout;
 	this->drawLabel = drawLabel;
 	this->drawSafeArea = drawSafeArea;
@@ -74,11 +86,10 @@ void Multiview::Update(MultiviewLayout multiviewLayout, bool drawLabel,
 	multiviewScenes.clear();
 	multiviewLabels.clear();
 
-	struct obs_video_info ovi;
-	obs_get_video_info(&ovi);
-
-	uint32_t w = ovi.base_width;
-	uint32_t h = ovi.base_height;
+	//struct obs_video_info ovi;
+	//obs_get_video_info(&ovi);
+	//uint32_t w = ovi.base_width;
+	//uint32_t h = ovi.base_height;
 	fw = float(w);
 	fh = float(h);
 	ratio = fw / fh;

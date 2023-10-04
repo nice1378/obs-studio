@@ -38,7 +38,9 @@ void OBSProjectorMultiview::UpdateMultiviewProjectors()
 	obs_leave_graphics();
 
 	if (nullptr != multiviewProjector)
-		multiviewProjector->UpdateMultiview();
+		multiviewProjector->UpdateMultiview(
+			multiviewProjector->InitRect.width(),
+			multiviewProjector->InitRect.height());
 
 	obs_enter_graphics();
 	updatingMultiview = false;
@@ -64,6 +66,8 @@ OBSProjectorMultiview::OBSProjectorMultiview(QWidget *widget,
 	//Qt::FramelessWindowHint 따로 쓰면 적용이 안됨
 	setWindowFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
 
+	InitRect = rect;
+
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__DragonFly__)
 	// Prevents resizing of projector windows
 	setAttribute(Qt::WA_PaintOnScreen, false);
@@ -87,7 +91,7 @@ OBSProjectorMultiview::OBSProjectorMultiview(QWidget *widget,
 	connect(this, &OBSQTDisplay::DisplayCreated, addDrawCallback);
 
 	multiview = new Multiview();
-	UpdateMultiview();
+	UpdateMultiview(rect.width(), rect.height());
 	multiviewProjector = this;
 
 	App()->IncrementSleepInhibition();
@@ -221,7 +225,7 @@ void OBSProjectorMultiview::mousePressEvent(QMouseEvent *event)
 	}
 }
 
-void OBSProjectorMultiview::UpdateMultiview()
+void OBSProjectorMultiview::UpdateMultiview(uint32_t w, uint32_t h)
 {
 	MultiviewLayout multiviewLayout = static_cast<MultiviewLayout>(
 		config_get_int(GetGlobalConfig(), "BasicWindow", "MultiviewLayout"));
@@ -230,7 +234,7 @@ void OBSProjectorMultiview::UpdateMultiview()
 	bool drawSafeArea = config_get_bool(GetGlobalConfig(), "BasicWindow", "MultiviewDrawAreas");
 	mouseSwitching = config_get_bool(GetGlobalConfig(), "BasicWindow", "MultiviewMouseSwitch");
 	transitionOnDoubleClick = config_get_bool(GetGlobalConfig(), "BasicWindow", "TransitionOnDoubleClick");
-	multiview->Update(multiviewLayout, drawLabel, drawSafeArea);
+	multiview->Update(multiviewLayout, drawLabel, drawSafeArea, w, h);
 }
 
 void OBSProjectorMultiview::OpenFullScreenProjector()
