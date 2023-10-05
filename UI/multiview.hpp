@@ -14,6 +14,8 @@ enum class MultiviewLayout : uint8_t {
 	SCENES_ONLY_9_SCENES = 7,
 	SCENES_ONLY_16_SCENES = 8,
 	SCENES_ONLY_25_SCENES = 9,
+
+	SCENES_ONLY_4X2_SCENES = 10,
 };
 
 class Multiview {

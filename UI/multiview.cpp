@@ -135,6 +135,11 @@ void Multiview::Update(MultiviewLayout multiviewLayout, bool drawLabel,
 		pvwprgCY = fh / 5;
 		maxSrcs = 25;
 		break;
+	case MultiviewLayout::SCENES_ONLY_4X2_SCENES:
+		pvwprgCX = fw / 4;
+		pvwprgCY = fh / 2;
+		maxSrcs = 8;
+		break;
 	default:
 		pvwprgCX = fw / 2;
 		pvwprgCY = fh / 2;
@@ -156,6 +161,7 @@ void Multiview::Update(MultiviewLayout multiviewLayout, bool drawLabel,
 	case MultiviewLayout::SCENES_ONLY_9_SCENES:
 	case MultiviewLayout::SCENES_ONLY_16_SCENES:
 	case MultiviewLayout::SCENES_ONLY_25_SCENES:
+	case MultiviewLayout::SCENES_ONLY_4X2_SCENES:
 		scenesCX = pvwprgCX;
 		scenesCY = pvwprgCY;
 		break;
@@ -308,6 +314,10 @@ void Multiview::Render(uint32_t cx, uint32_t cy)
 			sourceX = (i % 5) * scenesCX;
 			sourceY = (i / 5) * scenesCY;
 			break;
+		case MultiviewLayout::SCENES_ONLY_4X2_SCENES:
+			sourceX = (i % 4) * scenesCX;
+			sourceY = (i / 4) * scenesCY;
+			break;
 		default: // MultiviewLayout::HORIZONTAL_TOP_8_SCENES:
 			if (i < 4) {
 				sourceX = (float(i) * scenesCX);
@@ -366,6 +376,7 @@ void Multiview::Render(uint32_t cx, uint32_t cy)
 		case MultiviewLayout::SCENES_ONLY_4_SCENES:
 		case MultiviewLayout::SCENES_ONLY_9_SCENES:
 		case MultiviewLayout::SCENES_ONLY_16_SCENES:
+		case MultiviewLayout::SCENES_ONLY_4X2_SCENES:
 			sourceX = thickness;
 			sourceY = thickness;
 			labelX = offset;
@@ -464,7 +475,8 @@ void Multiview::Render(uint32_t cx, uint32_t cy)
 	if (multiviewLayout == MultiviewLayout::SCENES_ONLY_4_SCENES ||
 	    multiviewLayout == MultiviewLayout::SCENES_ONLY_9_SCENES ||
 	    multiviewLayout == MultiviewLayout::SCENES_ONLY_16_SCENES ||
-	    multiviewLayout == MultiviewLayout::SCENES_ONLY_25_SCENES) {
+	    multiviewLayout == MultiviewLayout::SCENES_ONLY_25_SCENES ||
+	    multiviewLayout == MultiviewLayout::SCENES_ONLY_4X2_SCENES) {
 		endRegion();
 		return;
 	}
@@ -740,6 +752,24 @@ OBSSource Multiview::GetSourceByPosition(int x, int y)
 
 		pos = (x - minX) / ((maxX - minX) / 5);
 		pos += ((y - minY) / ((maxY - minY) / 5)) * 5;
+
+		break;
+	case MultiviewLayout::SCENES_ONLY_4X2_SCENES:
+		if (float(cx) / float(cy) > ratio) {
+			int validX = cy * ratio;
+			minX = (cx / 2) - (validX / 2);
+			maxX = (cx / 2) + (validX / 2);
+		} else {
+			int validY = cx / ratio;
+			maxY = (cy / 2) + (validY / 2);
+			minY = (cy / 2) - (validY / 2);
+		}
+
+		if (x < minX || x > maxX || y < minY || y > maxY)
+			break;
+
+		pos = (x - minX) / ((maxX - minX) / 4);
+		pos += ((y - minY) / ((maxY - minY) / 4)) * 4;
 
 		break;
 	default: // MultiviewLayout::HORIZONTAL_TOP_8_SCENES

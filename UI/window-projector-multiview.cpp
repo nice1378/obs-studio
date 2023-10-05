@@ -234,7 +234,8 @@ void OBSProjectorMultiview::UpdateMultiview(uint32_t w, uint32_t h)
 	bool drawSafeArea = config_get_bool(GetGlobalConfig(), "BasicWindow", "MultiviewDrawAreas");
 	mouseSwitching = config_get_bool(GetGlobalConfig(), "BasicWindow", "MultiviewMouseSwitch");
 	transitionOnDoubleClick = config_get_bool(GetGlobalConfig(), "BasicWindow", "TransitionOnDoubleClick");
-	multiview->Update(multiviewLayout, drawLabel, drawSafeArea, w, h);
+	//multiview->Update(multiviewLayout, drawLabel, drawSafeArea, w, h);
+	multiview->Update(multiviewLayout, drawLabel, drawSafeArea);
 }
 
 void OBSProjectorMultiview::OpenFullScreenProjector()
