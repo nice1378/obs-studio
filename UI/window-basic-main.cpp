@@ -318,6 +318,7 @@ OBSBasic::OBSBasic(QWidget *parent)
 	contextBarStyle->setParent(ui->contextContainer);
 	ui->contextContainer->setStyle(contextBarStyle);
 	ui->broadcastButton->setVisible(false);
+	ui->widgetMultiview->installEventFilter(this);
 
 	startingDockLayout = saveState();
 
@@ -5151,6 +5152,29 @@ void OBSBasic::changeEvent(QEvent *event)
 	}
 }
 
+bool OBSBasic::eventFilter(QObject *obj, QEvent *event)
+{
+	if (obj == ui->widgetMultiview) {
+		switch (event->type()) {
+		case QEvent::Resize:
+			QResizeEvent *resizeEvent =
+				static_cast<QResizeEvent *>(event);
+			qDebug("Dock Resized (New Size) - Width: %d Height: %d",
+			       resizeEvent->size().width(),
+			       resizeEvent->size().height());
+
+			if (isVisible()) {
+				if (nullptr != projectorMultiview) {
+					UpdateProjectorMultiview();
+				}
+			}
+			break;
+		}
+	}
+
+	return QWidget::eventFilter(obj, event);
+}
+
 void OBSBasic::on_actionShow_Recordings_triggered()
 {
 	const char *mode = config_get_string(basicConfig, "Output", "Mode");
@@ -9320,7 +9344,6 @@ void OBSBasic::resizeEvent(QResizeEvent *event)
 		} else {
 			UpdateProjectorMultiview();
 		}
-		
 	}
 }
 

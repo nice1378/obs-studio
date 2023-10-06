@@ -1027,6 +1027,7 @@ protected:
 				 long *result) override;
 #endif
 	virtual void changeEvent(QEvent *event) override;
+	virtual bool eventFilter(QObject *obj, QEvent *event) override;
 
 private slots:
 	void on_actionFullscreenInterface_triggered();
