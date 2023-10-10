@@ -5233,6 +5233,11 @@ void OBSBasic::on_action_Settings_triggered()
 
 	settings_already_executing = true;
 
+	//if(projectorMultiview)
+	//	projectorMultiview->SetTopHint(false);
+
+	CloseProjectorMultiview();
+
 	{
 		OBSBasicSettings settings(this);
 		settings.exec();
@@ -5249,6 +5254,11 @@ void OBSBasic::on_action_Settings_triggered()
 		else
 			restart = false;
 	}
+
+	//if (projectorMultiview)
+	//	projectorMultiview->SetTopHint(false);
+
+	OpenProjectorMultiview(nullptr);
 }
 
 void OBSBasic::on_actionShowMacPermissions_triggered()
@@ -9108,12 +9118,24 @@ OBSProjector *OBSBasic::OpenProjector(obs_source_t *source, int monitor,
 	return projector;
 }
 
-OBSProjectorMultiview *OBSBasic::OpenProjectorMultiview(obs_source_t *source)
+void OBSBasic::OpenProjectorMultiview(obs_source_t *source)
 {
-	QRect rect = GetProjectorMultiviewGeometry();
-	OBSProjectorMultiview *projector =
-		new OBSProjectorMultiview(nullptr, source, rect);
-	return projector;
+	if (nullptr == projectorMultiview) {
+		QRect rect = GetProjectorMultiviewGeometry();
+		projectorMultiview = new OBSProjectorMultiview(nullptr, source, rect);
+	}
+	else {
+		UpdateProjectorMultiview();
+	}
+}
+
+void OBSBasic::CloseProjectorMultiview()
+{
+	if (nullptr != projectorMultiview) {
+		projectorMultiview->close();
+		delete projectorMultiview;
+		projectorMultiview = nullptr;
+	}
 }
 
 void OBSBasic::UpdateProjectorMultiview()
@@ -9339,11 +9361,7 @@ void OBSBasic::resizeEvent(QResizeEvent *event)
 	QWidget::resizeEvent(event);
 
 	if(isVisible()) {
-		if (nullptr == projectorMultiview) {
-			projectorMultiview = OpenProjectorMultiview(nullptr);
-		} else {
-			UpdateProjectorMultiview();
-		}
+		OpenProjectorMultiview(nullptr);
 	}
 }
 

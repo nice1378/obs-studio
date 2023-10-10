@@ -19,6 +19,8 @@ public:
 
 	OBSSource GetSource() { return OBSGetStrongRef(weakSource); }
 
+	void SetTopHint(bool top);
+
 private:
 	void moveEvent(QMoveEvent *event) override;
 	void closeEvent(QCloseEvent *event) override;

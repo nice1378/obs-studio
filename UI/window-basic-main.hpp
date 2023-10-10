@@ -421,7 +421,8 @@ private:
 
 	OBSProjector *OpenProjector(obs_source_t *source, int monitor,
 				    ProjectorType type);
-	OBSProjectorMultiview *OpenProjectorMultiview(obs_source_t *source);
+	void OpenProjectorMultiview(obs_source_t *source);
+	void CloseProjectorMultiview();
 	void UpdateProjectorMultiview();
 	QRect GetProjectorMultiviewGeometry();
 

@@ -126,6 +126,16 @@ OBSProjectorMultiview::~OBSProjectorMultiview()
 	App()->DecrementSleepInhibition();
 }
 
+void OBSProjectorMultiview::SetTopHint(bool top)
+{
+	if (top) {
+		//setWindowFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+		setWindowFlags(Qt::WindowStaysOnTopHint);
+	} else {
+		setWindowFlags(windowFlags() & ~(Qt::WindowStaysOnTopHint));
+	}
+}
+
 void OBSProjectorMultiview::moveEvent(QMoveEvent* event)
 {
 	QWidget::moveEvent(event);
