@@ -335,16 +335,16 @@ OBSBasic::OBSBasic(QWidget *parent)
 	statsDock->resize(700, 200);
 
 	//multiviewDock
-	multiviewDock = new OBSDock();
-	multiviewDock->setObjectName(QStringLiteral("multiviewDock"));
-	multiviewDock->setFeatures(QDockWidget::DockWidgetClosable |
-			       QDockWidget::DockWidgetMovable |
-			       QDockWidget::DockWidgetFloatable);
-	multiviewDock->setWindowTitle(QTStr("Basic.Multiview"));
-	addDockWidget(Qt::BottomDockWidgetArea, multiviewDock);
-	multiviewDock->setVisible(true);
-	multiviewDock->setFloating(true);
-	multiviewDock->resize(640, 400);
+	//multiviewDock = new OBSDock();
+	//multiviewDock->setObjectName(QStringLiteral("multiviewDock"));
+	//multiviewDock->setFeatures(QDockWidget::DockWidgetClosable |
+	//		       QDockWidget::DockWidgetMovable |
+	//		       QDockWidget::DockWidgetFloatable);
+	//multiviewDock->setWindowTitle(QTStr("Basic.Multiview"));
+	//addDockWidget(Qt::BottomDockWidgetArea, multiviewDock);
+	//multiviewDock->setVisible(true);
+	//multiviewDock->setFloating(true);
+	//multiviewDock->resize(640, 400);
 
 	copyActionsDynamicProperties();
 
@@ -475,7 +475,7 @@ OBSBasic::OBSBasic(QWidget *parent)
 	SETUP_DOCK(ui->transitionsDock);
 	SETUP_DOCK(ui->controlsDock);
 	SETUP_DOCK(statsDock);
-	SETUP_DOCK(multiviewDock);
+	//SETUP_DOCK(multiviewDock);
 #undef SETUP_DOCK
 
 	// Register shortcuts for Undo/Redo
@@ -524,10 +524,10 @@ OBSBasic::OBSBasic(QWidget *parent)
 	statsDock->move(newPos);
 
 	//multiviewDock
-	QPoint multiviewDockSize(multiviewDock->width(), multiviewDock->height());
-	QPoint multiviewDockPos = curSize / 2 - multiviewDockSize / 2;
-	QPoint multiviewPos = curPos + multiviewDockPos;
-	multiviewDock->move(multiviewPos);
+	//QPoint multiviewDockSize(multiviewDock->width(), multiviewDock->height());
+	//QPoint multiviewDockPos = curSize / 2 - multiviewDockSize / 2;
+	//QPoint multiviewPos = curPos + multiviewDockPos;
+	//multiviewDock->move(multiviewPos);
 
 	ui->previewDisabledWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->enablePreviewButton, SIGNAL(clicked()), this,
@@ -2124,6 +2124,7 @@ void OBSBasic::OBSInit()
 		ui->actionAlwaysOnTop->setEnabled(false);
 		ui->actionAlwaysOnTop->setVisible(false);
 	}
+	ui->actionAlwaysOnTop->setEnabled(false);
 
 #ifndef _WIN32
 	if (!hideWindowOnStart)
@@ -2135,8 +2136,10 @@ void OBSBasic::OBSInit()
 	statsDock->setWidget(statsDlg);
 
 	/* setup stats multiview */
-	OBSBasicMultiview *multiviewDlg = new OBSBasicMultiview (multiviewDock, false);
-	multiviewDock->setWidget(multiviewDlg);
+	//OBSBasicMultiview *multiviewDlg = new OBSBasicMultiview (multiviewDock, false);
+	//multiviewDock->setWidget(multiviewDlg);
+
+	OpenProjectorMultiview(nullptr);
 
 	/* ----------------------------- */
 	/* add custom browser docks      */
@@ -5150,10 +5153,39 @@ void OBSBasic::changeEvent(QEvent *event)
 				EnablePreviewDisplay(true);
 		}
 	}
+	else if (event->type() == QEvent::ActivationChange) {
+		if (this->isActiveWindow()){
+			::OutputDebugString(L"Baru : QEvent::ActivationChange true\n");
+			OpenProjectorMultiview(nullptr);
+		} else {
+			if(nullptr != projectorMultiview && projectorMultiview->GetLiftTime() > 1000 * 0.1) {
+				::OutputDebugString(L"Baru : QEvent::ActivationChange false\n");
+				CloseProjectorMultiview();
+			}
+		}
+	}
 }
 
 bool OBSBasic::eventFilter(QObject *obj, QEvent *event)
 {
+	//if (obj == this){
+	//	switch (event->type()) {
+	//	case QEvent::ActivationChange:
+	//		{
+	//		if (this->isActiveWindow()) {
+	//			::OutputDebugString(
+	//				L"Baru : QEvent::ActivationChange true\n");
+	//			OpenProjectorMultiview(nullptr);
+	//		} else {
+	//			::OutputDebugString(
+	//				L"Baru : QEvent::ActivationChange false\n");
+	//			CloseProjectorMultiview();
+	//		}
+	//		}
+	//		break;
+	//	}
+	//}
+
 	if (obj == ui->widgetMultiview) {
 		switch (event->type()) {
 		case QEvent::Resize:
@@ -5236,7 +5268,7 @@ void OBSBasic::on_action_Settings_triggered()
 	//if(projectorMultiview)
 	//	projectorMultiview->SetTopHint(false);
 
-	CloseProjectorMultiview();
+	//CloseProjectorMultiview();
 
 	{
 		OBSBasicSettings settings(this);
@@ -5258,7 +5290,7 @@ void OBSBasic::on_action_Settings_triggered()
 	//if (projectorMultiview)
 	//	projectorMultiview->SetTopHint(false);
 
-	OpenProjectorMultiview(nullptr);
+	//OpenProjectorMultiview(nullptr);
 }
 
 void OBSBasic::on_actionShowMacPermissions_triggered()
@@ -9370,6 +9402,16 @@ void OBSBasic::showEvent(QShowEvent* event)
 	QWidget::showEvent(event);
 }
 
+void OBSBasic::focusInEvent(QFocusEvent *event)
+{
+	QWidget::focusInEvent(event);
+}
+
+void OBSBasic::focusOutEvent(QFocusEvent *event)
+{
+	QWidget::focusOutEvent(event);
+}
+
 void OBSBasic::on_resetDocks_triggered(bool force)
 {
 	/* prune deleted extra docks */
@@ -9448,8 +9490,8 @@ void OBSBasic::on_resetDocks_triggered(bool force)
 	ui->controlsDock->setVisible(true);
 	statsDock->setVisible(false);
 	statsDock->setFloating(true);
-	multiviewDock->setVisible(false);
-	multiviewDock->setFloating(true);
+	//multiviewDock->setVisible(false);
+	//multiviewDock->setFloating(true);
 
 	resizeDocks(docks, {cy, cy, cy, cy, cy}, Qt::Vertical);
 	resizeDocks(docks, sizes, Qt::Horizontal);

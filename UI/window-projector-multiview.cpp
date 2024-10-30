@@ -103,6 +103,8 @@ OBSProjectorMultiview::OBSProjectorMultiview(QWidget *widget,
 
 	show();
 
+	elapsedTimer.start();
+
 	// We need it here to allow keyboard input in X11 to listen to Escape
 	activateWindow();
 }
@@ -132,8 +134,14 @@ void OBSProjectorMultiview::SetTopHint(bool top)
 		//setWindowFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
 		setWindowFlags(Qt::WindowStaysOnTopHint);
 	} else {
+		//setWindowFlags(windowFlags() & ~(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint));
 		setWindowFlags(windowFlags() & ~(Qt::WindowStaysOnTopHint));
 	}
+}
+
+qint64 OBSProjectorMultiview::GetLiftTime()
+{
+	return elapsedTimer.elapsed();
 }
 
 void OBSProjectorMultiview::moveEvent(QMoveEvent* event)
@@ -153,7 +161,17 @@ void OBSProjectorMultiview::closeEvent(QCloseEvent *event)
 	}
 
 
-	QWidget::closeEvent(event);
+	OBSQTDisplay::closeEvent(event);
+}
+
+void OBSProjectorMultiview::showEvent(QShowEvent *event)
+{
+	OBSQTDisplay::showEvent(event);
+}
+
+void OBSProjectorMultiview::hideEvent(QHideEvent* event)
+{
+	OBSQTDisplay::hideEvent(event);
 }
 
 void OBSProjectorMultiview::mouseDoubleClickEvent(QMouseEvent *event)

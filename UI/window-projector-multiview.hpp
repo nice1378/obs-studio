@@ -1,6 +1,7 @@
 #pragma once
 
 #include <obs.hpp>
+//#include <QTimer>
 #include "qt-display.hpp"
 #include "multiview.hpp"
 
@@ -21,9 +22,14 @@ public:
 
 	void SetTopHint(bool top);
 
+	qint64 GetLiftTime();
+
 private:
 	void moveEvent(QMoveEvent *event) override;
 	void closeEvent(QCloseEvent *event) override;
+	void showEvent(QShowEvent *event) override;
+	void hideEvent(QHideEvent *event) override;
+
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseDoubleClickEvent(QMouseEvent *event) override;
 
@@ -44,4 +50,6 @@ private:
 	Multiview *multiview = nullptr;
 	bool ready = false;
 	QRect prevGeometry;
+
+	QElapsedTimer elapsedTimer;
 };
